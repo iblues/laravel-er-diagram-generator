@@ -31,7 +31,13 @@ class Model
      */
     public function getNodeName()
     {
-        return str_replace('-', '', Str::slug($this->model));
+        return str_replace('-', '', Str::slug($this->model)).'321';
+    }
+
+    public function getUniqueNodeName(){
+
+
+        return md5($this->model);
     }
 
     /**

@@ -85,7 +85,7 @@ class JsonGraphBuilder
         // Add models to graph
         $models->map(function (Model $model) {
             $eloquentModel = app($model->getModel());
-            $this->addNodeToGraph($eloquentModel, $model->getNodeName(), $model->getLabel());
+            $this->addNodeToGraph($eloquentModel, $model->getUniqueNodeName(), $model->getLabel());
         });
 
         // Create relations
@@ -118,11 +118,11 @@ class JsonGraphBuilder
     protected function addRelationToGraph(Model $model)
     {
         // targetModel
-        $modelNode = $this->graph->findNode($model->getNodeName());
+        $modelNode = $this->graph->findNode($model->getUniqueNodeName());
 
         /** @var ModelRelation $relation */
         foreach ($model->getRelations() as $relation) {
-            $relatedModelNode = $this->graph->findNode($relation->getModelNodeName());
+            $relatedModelNode = $this->graph->findNode($relation->getModelUniqueNodeName());
 
             if ($relatedModelNode !== null) {
                 $this->connectByRelation($model, $relation, $modelNode, $relatedModelNode);
@@ -137,7 +137,6 @@ class JsonGraphBuilder
      */
     protected function connectNodes(JsonGeneratorNode $modelNode, JsonGeneratorNode $relatedModelNode, ModelRelation $relation): void
     {
-
         $this->graph->link($modelNode,$relatedModelNode,$relation);
     }
 

@@ -37,6 +37,16 @@ class ModelRelation
     }
 
     /**
+     * @return string
+     * @author Blues
+     *
+     */
+    public function getModelUniqueNodeName()
+    {
+        return md5($this->model);
+    }
+
+    /**
      * @return mixed
      */
     public function getType()
