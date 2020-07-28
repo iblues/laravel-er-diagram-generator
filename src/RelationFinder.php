@@ -23,11 +23,12 @@ class RelationFinder
     public function getModelRelations(string $model)
     {
         $class = new ReflectionClass($model);
-
+        //Get all traits public method
         $traitMethods = Collection::make($class->getTraits())->map(function (ReflectionClass $trait) {
             return Collection::make($trait->getMethods(ReflectionMethod::IS_PUBLIC));
         })->flatten();
 
+        //Param number must >0 and not self
         $methods = Collection::make($class->getMethods(ReflectionMethod::IS_PUBLIC))
             ->merge($traitMethods)
             ->reject(function (ReflectionMethod $method) use ($model) {
@@ -62,6 +63,8 @@ class RelationFinder
     }
 
     /**
+     * Run the method to get the return and parse it.
+     * So there are some problems ,if the method will do something that will be done. example:update or insert to DB.
      * @param ReflectionMethod $method
      * @param string $model
      * @return array|null
@@ -84,6 +87,8 @@ class RelationFinder
                     $foreignKey = $this->getParentKey($return->getQualifiedOwnerKeyName());
                     $localKey = method_exists($return, 'getForeignKeyName') ? $return->getForeignKeyName() : $return->getForeignKey();
                 }
+
+                //todo get phpdoc.
 
                 return [
                     $method->getName() => new ModelRelation(

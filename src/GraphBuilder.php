@@ -14,6 +14,7 @@ class GraphBuilder
     private $graph;
 
     /**
+     * Main method
      * @param $models
      * @return Graph
      */

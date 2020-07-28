@@ -40,13 +40,21 @@ class GenerateDiagramCommand extends Command
     /** @var GraphBuilder */
     protected $graphBuilder;
 
-    public function __construct(ModelFinder $modelFinder, RelationFinder $relationFinder, GraphBuilder $graphBuilder)
-    {
+    /** @var JsonGraphBuilder */
+    protected $jsonGraphBuilder;
+
+    public function __construct(
+        ModelFinder $modelFinder,
+        RelationFinder $relationFinder,
+        GraphBuilder $graphBuilder,
+        JsonGraphBuilder $jsonGraphBuilder
+    ) {
         parent::__construct();
 
         $this->relationFinder = $relationFinder;
         $this->modelFinder = $modelFinder;
         $this->graphBuilder = $graphBuilder;
+        $this->jsonGraphBuilder = $jsonGraphBuilder;
     }
 
     /**
@@ -54,6 +62,10 @@ class GenerateDiagramCommand extends Command
      */
     public function handle()
     {
+        if($this->option('format') == 'json'){
+            $this->graphBuilder = $this->jsonGraphBuilder;
+        }
+
         $models = $this->getModelsThatShouldBeInspected();
 
         $this->info("Found {$models->count()} models.");
@@ -61,15 +73,19 @@ class GenerateDiagramCommand extends Command
 
         $bar = $this->output->createProgressBar($models->count());
 
+        // Get Model objects
         $models->transform(function ($model) use ($bar) {
             $bar->advance();
+            //one by one done
             return new GraphModel(
                 $model,
                 (new ReflectionClass($model))->getShortName(),
+                // Try to get all relations
                 $this->relationFinder->getModelRelations($model)
             );
         });
 
+        //will get database info
         $graph = $this->graphBuilder->buildGraph($models);
 
         if ($this->option('format') === self::FORMAT_TEXT) {
@@ -80,13 +96,13 @@ class GenerateDiagramCommand extends Command
         $graph->export($this->option('format'), $this->getOutputFileName());
 
         $this->info(PHP_EOL);
-        $this->info('Wrote diagram to ' . $this->getOutputFileName());
+        $this->info('Wrote diagram to '.$this->getOutputFileName());
     }
 
     protected function getOutputFileName(): string
     {
         return $this->argument('filename') ?:
-            static::DEFAULT_FILENAME . '.' . $this->option('format');
+            static::DEFAULT_FILENAME.'.'.$this->option('format');
     }
 
     protected function getModelsThatShouldBeInspected(): Collection
